@@ -4,6 +4,7 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import os
 import json
+import random
 scope = ["https://spreadsheets.google.com/feeds","https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive.file","https://www.googleapis.com/auth/drive"] # this is our authorization
 
 secrets = json.load(open(os.getcwd()+"\\secrets.json"))
@@ -14,6 +15,13 @@ client  = gspread.authorize(credentials)
 movielist = client.open("The Movie List").sheet1
 
 
+def Pick():
+    names = movielist.col_values(3)
+    # todo: this is honestly a hack... can probably find a way to deal w this upfront
+    names.pop(0)
+
+
+    return random.choice(names)
 
 def Search(movie_name):
     """
@@ -45,6 +53,33 @@ app = Flask(__name__)
 @app.route('/') # default access
 def home_page():
     return render_template("searchpage.html")
+@app.route('/random')
+def random_movie():
+    print("bruh")
+    selection = Pick()
+    data = Search(selection)
+    if data.get('Response') == 'False':
+        # If false we want to make sure it is communicated that there was some sort of error.
+        return "Error occurred: movie does not exist in OMDB."
+
+    Add(data)  # Start process of adding the movie to the database/spreadsheet
+
+    return """<style>
+                body {background-color: palevioletred;}
+                h1   {color: blue;}
+                p    {color: red;}
+
+                .center {
+                  display: block;
+                  margin-left: auto;
+                  margin-right: auto;
+                  width: 25%;
+                }
+
+                </style>        """ + "<img src=" + data[
+        'Poster'] + " class=center><center><p style=\"font-family:Arial;font-size: 44px; \">Successfully added " + data[
+               'Title'] + " to the movie list.</center>"
+
 
 @app.route('/', methods=['POST'])
 def search_movie():
