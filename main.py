@@ -5,6 +5,8 @@ from oauth2client.service_account import ServiceAccountCredentials
 import os
 import json
 import random
+from misc import PosterPage, RandomPage
+
 scope = ["https://spreadsheets.google.com/feeds","https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive.file","https://www.googleapis.com/auth/drive"] # this is our authorization
 
 secrets = json.load(open(os.getcwd()+"\\secrets.json"))
@@ -15,13 +17,6 @@ client  = gspread.authorize(credentials)
 movielist = client.open("The Movie List").sheet1
 
 
-def Pick():
-    names = movielist.col_values(3)
-    # todo: this is honestly a hack... can probably find a way to deal w this upfront
-    names.pop(0)
-
-
-    return random.choice(names)
 
 def Search(movie_name):
     """
@@ -50,9 +45,14 @@ Flask Stuff goes below.
 """
 app = Flask(__name__)
 
-@app.route('/') # default access
-def home_page():
-    return render_template("searchpage.html")
+
+def Pick():
+    names = movielist.col_values(3)
+    names.pop(0)
+
+    # todo: this is honestly a hack... can probably find a way to deal w this upfront
+    return random.choice(names)
+
 @app.route('/random')
 def random_movie():
     print("bruh")
@@ -62,24 +62,13 @@ def random_movie():
         # If false we want to make sure it is communicated that there was some sort of error.
         return "Error occurred: movie does not exist in OMDB."
 
-    Add(data)  # Start process of adding the movie to the database/spreadsheet
+    return RandomPage(data)
+    
 
-    return """<style>
-                body {background-color: palevioletred;}
-                h1   {color: blue;}
-                p    {color: red;}
+@app.route('/') # Homepage
+def home_page():
 
-                .center {
-                  display: block;
-                  margin-left: auto;
-                  margin-right: auto;
-                  width: 25%;
-                }
-
-                </style>        """ + "<img src=" + data[
-        'Poster'] + " class=center><center><p style=\"font-family:Arial;font-size: 44px; \">Successfully added " + data[
-               'Title'] + " to the movie list.</center>"
-
+    return render_template("searchpage.html")
 
 @app.route('/', methods=['POST'])
 def search_movie():
@@ -90,20 +79,9 @@ def search_movie():
         return "Error occurred: movie does not exist in OMDB."
 
     Add(data)  # Start process of adding the movie to the database/spreadsheet
+    return PosterPage(data)
+    
 
-    return """<style>
-            body {background-color: palevioletred;}
-            h1   {color: blue;}
-            p    {color: red;}
-            
-            .center {
-              display: block;
-              margin-left: auto;
-              margin-right: auto;
-              width: 25%;
-            }
-            
-            </style>        """ + "<img src="+data['Poster']+" class=center><center><p style=\"font-family:Arial;font-size: 44px; \">Successfully added "+data['Title']+" to the movie list.</center>"
 
 
 """
@@ -122,13 +100,13 @@ I want a search bar to be used, and you input it. Clean web interface.
 
 
 
-# We will want to insert an entire row at a time, in t:qhis schema:
+# We will want to insert an entire row at a time, in this schema:
 # Suggester / Movie Title / Genre / Length / Priority / IMDB Link
 
 #
 # data = Search(movie_name)
 
 if __name__ == "__main__":
-    app.run(host=secrets["ip"], port="5010")
+    app.run(host="localhost", port="5010")
 
 
