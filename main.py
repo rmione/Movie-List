@@ -37,9 +37,8 @@ def Add(data):
     :param data:
     :return:
     """
-    row_skeleton = ["BOT", '', data.get('Title'), '', data.get('Genre'), '', data.get('Runtime'), '', "low", "n/a"]
-    print(row_skeleton)
-    movielist.insert_row(row_skeleton, 2, value_input_option="USER_ENTERED")
+
+    movielist.insert_row(["BOT", '', data.get('Title'), '', data.get('Genre'), '', data.get('Runtime'), '', "low", "n/a"], 2, value_input_option="USER_ENTERED")
 
 """
 Flask Stuff goes below. 
@@ -51,11 +50,17 @@ def Pick():
     names = movielist.col_values(3)
     names.pop(0)
 
-    # todo: this is honestly a hack... can probably find a way to deal w this upfront
+    # TODO: this is honestly a hack... can probably find a way to deal w this upfront
     return random.choice(names)
 
 @app.route('/random')
 def random_movie():
+    """
+    Uses the Pick() function to pick the movie itself.
+    Then the movie is searched for (for redundancy's sake. This is sort of unnecessary otherwise!)
+    And if a good response comes back, it will render the random movie page! 
+    
+    """
     
     selection = Pick()
     data = Search(selection)
