@@ -5,12 +5,13 @@ from oauth2client.service_account import ServiceAccountCredentials
 import os
 import json
 import random
-from misc import PosterPage, RandomPage
+from dotenv import load_dotenv
 
+load_dotenv()
 scope = ["https://spreadsheets.google.com/feeds","https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive.file","https://www.googleapis.com/auth/drive"] # this is our authorization
 
-secrets = json.load(open(os.getcwd()+"\\secrets.json"))
-
+API_DATA = os.getenv('API_DATA')
+IP = os.getenv('IP')
 
 credentials = ServiceAccountCredentials.from_json_keyfile_name(secrets["api_data"], scope)
 client  = gspread.authorize(credentials)
@@ -55,20 +56,20 @@ def Pick():
 
 @app.route('/random')
 def random_movie():
-    print("bruh")
+    
     selection = Pick()
     data = Search(selection)
     if data.get('Response') == 'False':
         # If false we want to make sure it is communicated that there was some sort of error.
         return "Error occurred: movie does not exist in OMDB."
 
-    return RandomPage(data)
+    return render_template("random.html", movie_name=data.get('Title'), movie_poster=data.get('Poster'))
     
 
 @app.route('/') # Homepage
 def home_page():
 
-    return render_template("searchpage.html")
+    return render_template("homepage.html")
 
 @app.route('/', methods=['POST'])
 def search_movie():
@@ -79,7 +80,8 @@ def search_movie():
         return "Error occurred: movie does not exist in OMDB."
 
     Add(data)  # Start process of adding the movie to the database/spreadsheet
-    return PosterPage(data)
+    return render_template("search.html", movie_name=data.get('Title'), movie_poster=data.get('Poster'))
+
     
 
 
