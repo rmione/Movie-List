@@ -13,7 +13,7 @@ scope = ["https://spreadsheets.google.com/feeds","https://www.googleapis.com/aut
 API_DATA = os.getenv('API_DATA')
 IP = os.getenv('IP')
 
-credentials = ServiceAccountCredentials.from_json_keyfile_name(secrets["api_data"], scope)
+credentials = ServiceAccountCredentials.from_json_keyfile_name(API_DATA, scope)
 client  = gspread.authorize(credentials)
 movielist = client.open("The Movie List").sheet1
 
@@ -59,7 +59,7 @@ def random_movie():
     Uses the Pick() function to pick the movie itself.
     Then the movie is searched for (for redundancy's sake. This is sort of unnecessary otherwise!)
     And if a good response comes back, it will render the random movie page! 
-    
+
     """
     
     selection = Pick()
